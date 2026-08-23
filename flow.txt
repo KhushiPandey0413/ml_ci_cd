@@ -1,0 +1,21 @@
+mlops-jenkins/
+│
+├── .venv/
+│
+├── src/
+│   ├── train.py
+│   ├── evaluate.py
+│   └── predict.py
+│
+├── tests/
+│   └── test_model.py
+│
+├── models/
+│
+├── deployed_models/
+│
+├── requirements.txt
+│
+├── .gitignore
+│
+└── Jenkinsfile

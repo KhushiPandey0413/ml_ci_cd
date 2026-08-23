@@ -190,36 +190,35 @@ pipeline {
         }
 
 
-        stage('Deploy Model') {
+        stage('Deploy Model Locally') {
 
-    steps {
+            steps {
 
-        script {
+                script {
 
-            if (isUnix()) {
+                    if (isUnix()) {
 
-                sh """
-                mkdir -p deployed_models
-                cp models/model.pkl deployed_models/model_${BUILD_NUMBER}.pkl
-                """
+                        sh '''
+                        mkdir -p deployed_models
+                        cp models/model.pkl deployed_models/model.pkl
+                        '''
 
-            } else {
+                    } else {
 
-                bat """
-                if not exist deployed_models mkdir deployed_models
-                copy /Y models\\model.pkl deployed_models\\model_%BUILD_NUMBER%.pkl
-                """
+                        bat '''
+                        if not exist deployed_models mkdir deployed_models
+                        copy /Y models\\model.pkl deployed_models\\model.pkl
+                        '''
+
+                    }
+
+                }
 
             }
 
         }
 
     }
-
-}
-        
-
-
 
 
     post {

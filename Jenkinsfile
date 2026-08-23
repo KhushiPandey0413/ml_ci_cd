@@ -2,6 +2,10 @@ pipeline {
 
     agent any
 
+    environment {
+        PYTHON = 'C:\\Users\\Prof. Swapnil Pawar\\AppData\\Local\\Programs\\Python\\Python311\\python.exe'
+    }
+
     stages {
 
         stage('Check Python') {
@@ -13,9 +17,8 @@ pipeline {
                     echo Checking Python
                     echo ==============================
 
-                    where python
-                    python --version
-                    python -m pip --version
+                    "%PYTHON%" --version
+                    "%PYTHON%" -m pip --version
                 '''
             }
         }
@@ -32,7 +35,7 @@ pipeline {
 
                     if exist .venv rmdir /s /q .venv
 
-                    python -m venv .venv
+                    "%PYTHON%" -m venv .venv
 
                     .venv\\Scripts\\python.exe --version
 
@@ -78,7 +81,7 @@ pipeline {
 
                 bat '''
                     echo ==============================
-                    echo Training ML Model
+                    echo Training Model
                     echo ==============================
 
                     .venv\\Scripts\\python.exe src\\train.py
@@ -93,7 +96,7 @@ pipeline {
 
                 bat '''
                     echo ==============================
-                    echo Evaluating ML Model
+                    echo Evaluating Model
                     echo ==============================
 
                     .venv\\Scripts\\python.exe src\\evaluate.py
@@ -117,7 +120,7 @@ pipeline {
         }
 
 
-        stage('Deploy Model Locally') {
+        stage('Deploy Model') {
 
             steps {
 
@@ -154,8 +157,8 @@ pipeline {
 
             echo '===================================='
             echo 'MLOps Pipeline FAILED'
-            echo 'Check the Console Output'
             echo '===================================='
+
         }
     }
 }

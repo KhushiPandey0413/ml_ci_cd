@@ -2,26 +2,22 @@ pipeline {
 
     agent any
 
-
-    environment {
-
-        VENV = ".venv"
-
-    }
-
-
     stages {
 
-        stage('Checkout Code') {
+        stage('Check Python') {
 
             steps {
 
-                echo 'Checking out source code...'
+                bat '''
+                    echo ==============================
+                    echo Checking Python
+                    echo ==============================
 
-                checkout scm
-
+                    where python
+                    python --version
+                    python -m pip --version
+                '''
             }
-
         }
 
 
@@ -29,26 +25,20 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Creating Virtual Environment
+                    echo ==============================
 
-                    if (isUnix()) {
+                    if exist .venv rmdir /s /q .venv
 
-                        sh '''
-                        python3 -m venv .venv
-                        '''
+                    python -m venv .venv
 
-                    } else {
+                    .venv\\Scripts\\python.exe --version
 
-                        bat '''
-                        python -m venv .venv
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe -m pip install --upgrade pip
+                '''
             }
-
         }
 
 
@@ -56,29 +46,14 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Installing Dependencies
+                    echo ==============================
 
-                    if (isUnix()) {
-
-                        sh '''
-                        . .venv/bin/activate
-                        python -m pip install --upgrade pip
-                        pip install -r requirements.txt
-                        '''
-
-                    } else {
-
-                        bat '''
-                        .venv\\Scripts\\python.exe -m pip install --upgrade pip
-                        .venv\\Scripts\\pip.exe install -r requirements.txt
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe -m pip install -r requirements.txt
+                '''
             }
-
         }
 
 
@@ -86,26 +61,14 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Running Tests
+                    echo ==============================
 
-                    if (isUnix()) {
-
-                        sh '''
-                        .venv/bin/python -m pytest tests/
-                        '''
-
-                    } else {
-
-                        bat '''
-                        .venv\\Scripts\\python.exe -m pytest tests\\
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe -m pytest tests -v
+                '''
             }
-
         }
 
 
@@ -113,26 +76,14 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Training ML Model
+                    echo ==============================
 
-                    if (isUnix()) {
-
-                        sh '''
-                        .venv/bin/python src/train.py
-                        '''
-
-                    } else {
-
-                        bat '''
-                        .venv\\Scripts\\python.exe src\\train.py
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe src\\train.py
+                '''
             }
-
         }
 
 
@@ -140,26 +91,14 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Evaluating ML Model
+                    echo ==============================
 
-                    if (isUnix()) {
-
-                        sh '''
-                        .venv/bin/python src/evaluate.py
-                        '''
-
-                    } else {
-
-                        bat '''
-                        .venv\\Scripts\\python.exe src\\evaluate.py
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe src\\evaluate.py
+                '''
             }
-
         }
 
 
@@ -167,26 +106,14 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Testing Prediction
+                    echo ==============================
 
-                    if (isUnix()) {
-
-                        sh '''
-                        .venv/bin/python src/predict.py
-                        '''
-
-                    } else {
-
-                        bat '''
-                        .venv\\Scripts\\python.exe src\\predict.py
-                        '''
-
-                    }
-
-                }
-
+                    .venv\\Scripts\\python.exe src\\predict.py
+                '''
             }
-
         }
 
 
@@ -194,30 +121,17 @@ pipeline {
 
             steps {
 
-                script {
+                bat '''
+                    echo ==============================
+                    echo Deploying Model
+                    echo ==============================
 
-                    if (isUnix()) {
+                    if not exist deployed_models mkdir deployed_models
 
-                        sh '''
-                        mkdir -p deployed_models
-                        cp models/model.pkl deployed_models/model.pkl
-                        '''
-
-                    } else {
-
-                        bat '''
-                        if not exist deployed_models mkdir deployed_models
-                        copy /Y models\\model.pkl deployed_models\\model.pkl
-                        '''
-
-                    }
-
-                }
-
+                    copy /Y models\\model.pkl deployed_models\\model_%BUILD_NUMBER%.pkl
+                '''
             }
-
         }
-
     }
 
 
@@ -225,24 +139,23 @@ pipeline {
 
         success {
 
-            echo 'MLOps Pipeline Completed Successfully!'
+            echo '===================================='
+            echo 'MLOps Pipeline Successful'
+            echo '===================================='
 
+            archiveArtifacts(
+                artifacts: 'models/*.pkl',
+                fingerprint: true
+            )
         }
 
 
         failure {
 
-            echo 'Pipeline Failed! Check Jenkins Console Output.'
-
+            echo '===================================='
+            echo 'MLOps Pipeline FAILED'
+            echo 'Check the Console Output'
+            echo '===================================='
         }
-
-
-        always {
-
-            echo 'Cleaning workspace...'
-
-        }
-
     }
-
 }

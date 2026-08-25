@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         PYTHON = 'C:\\Users\\Prof. Swapnil Pawar\\AppData\\Local\\Programs\\Python\\Python311\\python.exe'
+        
     }
 
     stages {
